@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#102b46">
+<meta name="description" content="Checklist diário de abertura e controle de recebimento da loja.">
+<link rel="manifest" href="manifest.webmanifest">
+<title>BAME | Rotina de Abertura</title>
+<style>
+:root{--navy:#102b46;--blue:#1d527d;--bg:#f2f5f8;--ink:#172536;--muted:#68798a;--line:#dce4eb;--green:#16834a;--amber:#a85b00;--red:#b3261e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:linear-gradient(135deg,var(--navy),var(--blue));color:white;padding:24px 18px 22px;border-radius:0 0 22px 22px}
+header .eyebrow{font-size:12px;letter-spacing:1.5px;opacity:.8;font-weight:700}h1{font-size:23px;margin:6px 0 3px}header p{margin:0;opacity:.85;font-size:14px}
+main{max-width:680px;margin:auto;padding:16px 14px 40px}.datebar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 2px 14px}
+.datebar input{border:1px solid var(--line);border-radius:10px;padding:9px;background:white;font:inherit}
+.progress{background:white;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
+.progressline{height:9px;background:#e7edf2;border-radius:99px;overflow:hidden;margin:10px 0 5px}.bar{height:100%;width:0;background:var(--green);transition:width .2s}
+.stats{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+.section{font-size:12px;letter-spacing:1px;font-weight:800;color:var(--muted);margin:20px 4px 8px}
+.task{display:flex;align-items:center;gap:12px;background:white;border:1px solid var(--line);border-radius:14px;padding:14px;margin:8px 0;min-height:60px}
+.task input{width:22px;height:22px;accent-color:var(--green);flex-shrink:0}
+.task label{flex:1;font-weight:600;font-size:15px}.task small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:3px}
+.task.done label{text-decoration:line-through;color:var(--muted)}
+.critical{border:2px solid #e8b45d;background:#fffaf1}.critical strong{color:#8b4a00}
+.callout{padding:13px 14px;background:#fff3dd;border-radius:13px;color:#714000;font-size:13px;line-height:1.45;margin:10px 0 14px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0}
+h2{font-size:18px;margin:0 0 12px}.field{display:grid;gap:5px;margin:9px 0}.field label{font-size:12px;color:var(--muted);font-weight:700}
+input[type=text],input[type=date],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:white;color:var(--ink)}
+textarea{min-height:65px;resize:vertical}
+button{border:0;border-radius:11px;padding:12px 15px;background:var(--navy);color:white;font:700 14px system-ui;cursor:pointer}
+button.secondary{background:#e9eff4;color:var(--navy)}button.danger{background:#fff0ef;color:var(--red)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.entry{border-top:1px solid var(--line);padding:12px 0}.entry:first-of-type{border-top:0}
+.entryhead{display:flex;justify-content:space-between;gap:8px;font-weight:700}.pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#fff0dc;color:#8b4a00}.pill.ok{background:#e5f5eb;color:#146c3b}
+nav{display:flex;gap:8px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}
+nav button{flex:1;padding:10px 5px;background:#e2eaf1;color:var(--navy)}nav button.active{background:var(--navy);color:white}
+.panel[hidden]{display:none}.muted{color:var(--muted);font-size:13px}.empty{color:var(--muted);text-align:center;padding:18px 5px;font-size:14px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">BAME • ORGANIZAÇÃO DIÁRIA</div><h1>Rotina de Abertura</h1><p>Um passo de cada vez. Nada importante fica para trás.</p></header>
+<main>
+  <nav>
+    <button class="active" data-tab="rotina">Checklist</button>
+    <button data-tab="cargas">Recebimento</button>
+    <button data-tab="historico">Resumo</button>
+  </nav>
+
+  <section id="rotina" class="panel">
+    <div class="datebar"><strong>Checklist do dia</strong><input id="workDate" type="date"></div>
+    <div class="progress">
+      <div style="display:flex;justify-content:space-between;gap:8px"><strong>Progresso da abertura</strong><strong id="pct">0%</strong></div>
+      <div class="progressline"><div class="bar" id="bar"></div></div>
+      <div class="stats"><span id="count">0 de 6 concluídas</span><span id="remaining">6 pendentes</span></div>
+    </div>
+    <div class="section">ABERTURA DA LOJA</div>
+    <div id="tasks"></div>
+    <div class="section">RECEBIMENTO — ATENÇÃO ESPECIAL</div>
+    <div class="callout"><strong>Recebeu carga?</strong> Não considere o recebimento encerrado antes de dar entrada no CPAR e conferir o coletor. Registre cada carga na aba Recebimento.</div>
+    <div class="task critical" id="finalCheck"><input type="checkbox" id="finalBox"><label for="finalBox"><strong>Conferência final: CPAR + coletor</strong><small>Antes de encerrar, confirme que não ficou nenhuma carga sem lançamento.</small></label></div>
+    <div class="actions"><button class="secondary" id="resetDay">Desmarcar checklist do dia</button></div>
+  </section>
+
+  <section id="cargas" class="panel" hidden>
+    <div class="card">
+      <h2>Registrar recebimento</h2>
+      <p class="muted">Use este registro para cada carga que chegar à loja.</p>
+      <div class="field"><label for="loadDate">Data</label><input id="loadDate" type="date"></div>
+      <div class="field"><label for="loadName">Identificação / observação da carga</label><input id="loadName" type="text" placeholder="Ex.: carga da manhã, NF ou fornecedor"></div>
+      <div class="field"><label for="cpar">Entrada no CPAR</label><select id="cpar"><option value="Pendente">Pendente</option><option value="Concluído">Concluído</option></select></div>
+      <div class="field"><label for="coletor">Conferência no coletor</label><select id="coletor"><option value="Pendente">Pendente</option><option value="Concluído">Concluído</option></select></div>
+      <div class="field"><label for="notes">Observações</label><textarea id="notes" placeholder="Anote alguma pendência, divergência ou detalhe..."></textarea></div>
+      <button id="saveLoad">Salvar carga</button>
+    </div>
+    <div class="card"><h2>Cargas registradas</h2><div id="loads"></div></div>
+  </section>
+
+  <section id="historico" class="panel" hidden>
+    <div class="card"><h2>Resumo do dia</h2><div id="summary"></div></div>
+    <div class="card">
+      <h2>Seus dados</h2>
+      <p class="muted">As informações ficam salvas neste navegador e neste aparelho. Se limpar os dados do navegador ou trocar de celular, elas podem ser perdidas.</p>
+      <button class="secondary" id="exportData">Exportar meus registros</button>
+    </div>
+  </section>
+  <footer>BAME | ROTINA DE ABERTURA • Ferramenta pessoal de organização</footer>
+</main>
+<script>
+const taskList=[
+ ["Realizar a abertura da loja","Conferir os procedimentos iniciais."],
+ ["Conferir o checklist de abertura","Verificar os pontos obrigatórios da loja."],
+ ["Verificar NPS dos grupos","Acompanhar os grupos e sinalizar o que precisar."],
+ ["Conferir os quadros da loja","Verificar organização e atualização."],
+ ["Tirar e enviar foto do hidrômetro","Registrar a leitura conforme a rotina."],
+ ["Verificar recebimentos do dia","Conferir se toda carga foi registrada no controle."]
+];
+const $=id=>document.getElementById(id);
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+let day=today(); $("workDate").value=day;$("loadDate").value=day;
+function dayState(){return get("bame_day_"+day,{checks:{},final:false})}
+function renderTasks(){
+ const s=dayState();$("tasks").innerHTML="";
+ taskList.forEach((t,i)=>{
+  const div=document.createElement("div");div.className="task"+(s.checks[i]?" done":"");
+  const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!s.checks[i];cb.id="t"+i;
+  cb.addEventListener("change",()=>{let x=dayState();x.checks[i]=cb.checked;set("bame_day_"+day,x);renderTasks()});
+  const label=document.createElement("label");label.htmlFor="t"+i;label.textContent=t[0];
+  const small=document.createElement("small");small.textContent=t[1];label.appendChild(small);
+  div.append(cb,label);$("tasks").appendChild(div);
+ });
+ $("finalBox").checked=!!s.final;
+ $("finalBox").onchange=()=>{let x=dayState();x.final=$("finalBox").checked;set("bame_day_"+day,x);renderTasks()};
+ const n=taskList.filter((_,i)=>s.checks[i]).length+(s.final?1:0),total=7,p=Math.round(n/total*100);
+ $("pct").textContent=p+"%";$("bar").style.width=p+"%";$("count").textContent=n+" de "+total+" concluídas";$("remaining").textContent=(total-n)+" pendentes";
+}
+$("workDate").addEventListener("change",()=>{day=$("workDate").value||today();renderTasks();renderSummary()});
+$("resetDay").onclick=()=>{if(confirm("Desmarcar todas as tarefas deste dia?")){localStorage.removeItem("bame_day_"+day);renderTasks();renderSummary()}};
+function loads(){return get("bame_loads",[])}
+function renderLoads(){
+ const root=$("loads"),arr=loads();root.innerHTML="";
+ if(!arr.length){root.innerHTML='<div class="empty">Nenhuma carga registrada ainda.</div>';return}
+ [...arr].reverse().forEach((l,rev)=>{
+  const idx=arr.length-1-rev,ok=l.cpar==="Concluído"&&l.coletor==="Concluído";
+  const div=document.createElement("div");div.className="entry";
+  const head=document.createElement("div");head.className="entryhead";
+  const name=document.createElement("span");name.textContent=(l.name||"Carga sem identificação")+" • "+l.date;
+  const pill=document.createElement("span");pill.className="pill"+(ok?" ok":"");pill.textContent=ok?"Finalizada":"Pendente";
+  head.append(name,pill);div.appendChild(head);
+  const p=document.createElement("p");p.className="muted";p.textContent="CPAR: "+l.cpar+" | Coletor: "+l.coletor+(l.notes?" | "+l.notes:"");div.appendChild(p);
+  const actions=document.createElement("div");actions.className="actions";
+  const edit=document.createElement("button");edit.className="secondary";edit.textContent="Atualizar status";edit.onclick=()=>{let a=loads();a[idx].cpar=a[idx].cpar==="Concluído"?"Pendente":"Concluído";a[idx].coletor=a[idx].coletor==="Concluído"?"Pendente":"Concluído";set("bame_loads",a);renderLoads();renderSummary()};
+  const del=document.createElement("button");del.className="danger";del.textContent="Excluir";del.onclick=()=>{if(confirm("Excluir este registro?")){let a=loads();a.splice(idx,1);set("bame_loads",a);renderLoads();renderSummary()}};
+  actions.append(edit,del);div.append(actions);root.append(div);
+ });
+}
+$("saveLoad").onclick=()=>{
+ const name=$("loadName").value.trim();if(!name){alert("Descreva ou identifique a carga antes de salvar.");$("loadName").focus();return}
+ const a=loads();a.push({date:$("loadDate").value||today(),name,cpar:$("cpar").value,coletor:$("coletor").value,notes:$("notes").value.trim()});set("bame_loads",a);
+ $("loadName").value="";$("notes").value="";$("cpar").value="Pendente";$("coletor").value="Pendente";renderLoads();renderSummary();alert("Carga registrada!");
+};
+function renderSummary(){
+ const s=dayState(),done=taskList.filter((_,i)=>s.checks[i]).length+(s.final?1:0),a=loads().filter(x=>x.date===day),pending=a.filter(x=>x.cpar!=="Concluído"||x.coletor!=="Concluído").length;
+ $("summary").innerHTML="";
+ const lines=[["Data selecionada",day],["Tarefas concluídas",done+" de 7"],["Cargas registradas",String(a.length)],["Cargas com CPAR ou coletor pendente",String(pending)]];
+ lines.forEach(([k,v])=>{const p=document.createElement("p");p.textContent=k+": "+v;$("summary").append(p)});
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+ document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===b));
+ document.querySelectorAll(".panel").forEach(x=>x.hidden=x.id!==b.dataset.tab);
+ if(b.dataset.tab==="cargas")renderLoads();if(b.dataset.tab==="historico")renderSummary();
+});
+$("exportData").onclick=()=>{
+ const data={dias:Object.keys(localStorage).filter(k=>k.startsWith("bame_day_")).reduce((o,k)=>(o[k]=get(k,{}),o),{}),cargas:loads()};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="bame-registros.json";a.click();URL.revokeObjectURL(url);
+};
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+renderTasks();renderSummary();
+</script>
+</body></html>

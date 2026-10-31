@@ -1,0 +1,9 @@
+{
+  "name": "BAME | Rotina de Abertura",
+  "short_name": "BAME Rotina",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f2f5f8",
+  "theme_color": "#102b46",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
