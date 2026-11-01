@@ -1,4 +1,4 @@
-const CACHE="bame-rotina-v3";
+const CACHE="bame-rotina-v4";
 const FILES=["./","./index.html","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install",event=>{
