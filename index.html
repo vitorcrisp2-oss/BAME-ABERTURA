@@ -26,7 +26,8 @@ main{max-width:680px;margin:auto;padding:16px 14px 40px}.datebar{display:flex;ju
 .callout{padding:13px 14px;background:#fff3dd;border-radius:13px;color:#714000;font-size:13px;line-height:1.45;margin:10px 0 14px}
 .card{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0}
 h2{font-size:18px;margin:0 0 12px}.field{display:grid;gap:5px;margin:9px 0}.field label{font-size:12px;color:var(--muted);font-weight:700}
-input[type=text],input[type=date],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:white;color:var(--ink)}
+input[type=text],input[type=date],input[type=number],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:white;color:var(--ink)}
+[hidden]{display:none!important}
 textarea{min-height:65px;resize:vertical}
 button{border:0;border-radius:11px;padding:12px 15px;background:var(--navy);color:white;font:700 14px system-ui;cursor:pointer}
 button.secondary{background:#e9eff4;color:var(--navy)}button.danger{background:#fff0ef;color:var(--red)}
@@ -152,7 +153,7 @@ const $=id=>document.getElementById(id);
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
 const get=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
 const set=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-let day=today(); $("workDate").value=day;$("loadDate").value=day;
+let day=today(); $("workDate").value=day;$("loadDate").value=day;$("refusalDate").value=day;
 function dayState(){return get("bame_day_"+day,{checks:{},final:false})}
 function renderTasks(){
  const s=dayState();$("tasks").innerHTML="";
@@ -303,7 +304,7 @@ $("saveRefusal").onclick=()=>{
  const a=refusals();
  a.push({date:$("refusalDate").value||today(),product,qty,code:$("refusalCode").value.trim(),reason,createdAt:new Date().toISOString()});
  set("bame_refusals",a);
- $("refusalProduct").value="";$("refusalQty").value="";$("refusalCode").value="";
+ $("refusalDate").value=today();$("refusalProduct").value="";$("refusalQty").value="";$("refusalCode").value="";
  $("refusalReason").value="Erro de estoque";$("refusalOtherReason").value="";$("otherReasonField").hidden=true;
  renderRefusals();renderSummary();alert("Recusa registrada com sucesso!");
 };
