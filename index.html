@@ -146,7 +146,7 @@ function renderTasks(){
  const n=taskList.filter((_,i)=>s.checks[i]).length+(s.final?1:0),total=7,p=Math.round(n/total*100);
  $("pct").textContent=p+"%";$("bar").style.width=p+"%";$("count").textContent=n+" de "+total+" concluídas";$("remaining").textContent=(total-n)+" pendentes";
 }
-$("workDate").addEventListener("change",()=>{day=$("workDate").value||today();renderTasks();renderSummary()});
+$("workDate").addEventListener("change",()=>{day=$("workDate").value||today();renderTasks();renderStock();renderSummary()});
 $("resetDay").onclick=()=>{if(confirm("Desmarcar todas as tarefas deste dia?")){localStorage.removeItem("bame_day_"+day);renderTasks();renderSummary()}};
 function loads(){return get("bame_loads",[])}
 function renderLoads(){
@@ -248,12 +248,48 @@ $("saveTotvs").onclick=()=>{
 };
 
 function renderSummary(){
- const s=dayState(),done=taskList.filter((_,i)=>s.checks[i]).length+(s.final?1:0),a=loads().filter(x=>x.date===day),pending=a.filter(x=>x.cpar!=="Concluído"||x.coletor!=="Concluído").length;
+ const s=dayState();
+ const done=taskList.filter((_,i)=>!!s.checks[i]).length+(s.final?1:0);
+ const a=loads().filter(x=>x.date===day);
+ const pending=a.filter(x=>x.cpar!=="Concluído"||x.coletor!=="Concluído").length;
+ const finished=a.length-pending;
+ const moves=stockMoves().filter(x=>x.date===day);
+ const totvs=get("bame_totvs_"+day,{done:false,note:""});
+
+ const plus=moves
+  .filter(x=>x.type==="Entrada"||x.type==="Divergência positiva")
+  .reduce((n,x)=>n+Number(x.qty||0),0);
+ const minus=moves
+  .filter(x=>x.type==="Saída"||x.type==="Divergência negativa")
+  .reduce((n,x)=>n+Number(x.qty||0),0);
+ const divergences=moves.filter(x=>x.type.startsWith("Divergência")).length;
+
+ const lines=[
+  ["Data selecionada",day],
+  ["Tarefas concluídas",done+" de 7"],
+  ["Cargas registradas",String(a.length)],
+  ["Cargas finalizadas",String(finished)],
+  ["Cargas com CPAR ou coletor pendente",String(pending)],
+  ["Movimentações de estoque",String(moves.length)],
+  ["Divergências registradas",String(divergences)],
+  ["Entradas / divergências positivas (+)",String(plus)],
+  ["Saídas / divergências negativas (-)",String(minus)],
+  ["Controle TOTVS",totvs.done?"Concluído":"Pendente"]
+ ];
+
  $("summary").innerHTML="";
- const moves=stockMoves().filter(x=>x.date===day),totvs=get("bame_totvs_"+day,{done:false,note:""});
- const plus=moves.filter(x=>x.type==="Entrada"||x.type==="Divergência positiva").reduce((n,x)=>n+x.qty,0),minus=moves.filter(x=>x.type==="Saída"||x.type==="Divergência negativa").reduce((n,x)=>n+x.qty,0);
- const lines=[["Data selecionada",day],["Tarefas concluídas",done+" de 7"],["Cargas registradas",String(a.length)],["Cargas com CPAR ou coletor pendente",String(pending)],["Movimentações de estoque",String(moves.length)],["Divergências / entradas (+)",String(plus)],["Saídas / divergências (-)",String(minus)],["Controle TOTVS",totvs.done?"Concluído":"Pendente"]];
- lines.forEach(([k,v])=>{const p=document.createElement("p");p.textContent=k+": "+v;$("summary").append(p)});
+ lines.forEach(([k,v])=>{
+  const p=document.createElement("p");
+  p.textContent=k+": "+v;
+  $("summary").append(p);
+ });
+
+ if(totvs.note){
+  const note=document.createElement("p");
+  note.className="muted";
+  note.textContent="Observação TOTVS: "+totvs.note;
+  $("summary").append(note);
+ }
 }
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===b));
