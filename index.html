@@ -35,6 +35,7 @@ button.secondary{background:#e9eff4;color:var(--navy)}button.danger{background:#
 .entryhead{display:flex;justify-content:space-between;gap:8px;font-weight:700}.pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#fff0dc;color:#8b4a00}.pill.ok{background:#e5f5eb;color:#146c3b}
 nav{display:flex;gap:8px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}
 nav button{flex:1;padding:10px 5px;background:#e2eaf1;color:var(--navy)}nav button.active{background:var(--navy);color:white}
+.stockgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#f2f6fa;border-radius:12px;padding:12px}.metric strong{display:block;font-size:21px}.metric span{font-size:12px;color:var(--muted)}.notice{padding:11px;border-radius:12px;background:#eef5fb;color:#234b6b;font-size:13px;margin:10px 0}.reminderrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.tagplus{color:var(--green);font-weight:800}.tagminus{color:var(--red);font-weight:800}
 .panel[hidden]{display:none}.muted{color:var(--muted);font-size:13px}.empty{color:var(--muted);text-align:center;padding:18px 5px;font-size:14px}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 </style>
@@ -45,6 +46,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
   <nav>
     <button class="active" data-tab="rotina">Checklist</button>
     <button data-tab="cargas">Recebimento</button>
+    <button data-tab="estoque">Estoque</button>
     <button data-tab="historico">Resumo</button>
   </nav>
 
@@ -75,6 +77,32 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
       <button id="saveLoad">Salvar carga</button>
     </div>
     <div class="card"><h2>Cargas registradas</h2><div id="loads"></div></div>
+  </section>
+
+
+  <section id="estoque" class="panel" hidden>
+    <div class="card">
+      <h2>Estoque e divergências</h2>
+      <p class="muted">Registre entradas, saídas e diferenças encontradas na conferência.</p>
+      <div class="stockgrid">
+        <div class="metric"><strong id="stockIn">0</strong><span>Entradas registradas</span></div>
+        <div class="metric"><strong id="stockOut">0</strong><span>Saídas registradas</span></div>
+      </div>
+      <div class="field"><label for="stockItem">Produto / item</label><input id="stockItem" type="text" placeholder="Ex.: Tapete higiênico"></div>
+      <div class="field"><label for="stockType">Tipo de movimentação</label><select id="stockType"><option value="Entrada">Entrada (+)</option><option value="Saída">Saída (-)</option><option value="Divergência positiva">Divergência positiva (+)</option><option value="Divergência negativa">Divergência negativa (-)</option></select></div>
+      <div class="field"><label for="stockQty">Quantidade</label><input id="stockQty" type="number" min="1" step="1" placeholder="Ex.: 3"></div>
+      <div class="field"><label for="stockReason">Motivo / observação</label><textarea id="stockReason" placeholder="Ex.: sobra na contagem, falta, avaria, ajuste..."></textarea></div>
+      <button id="saveStock">Registrar movimentação</button>
+    </div>
+    <div class="card">
+      <h2>Controle TOTVS</h2>
+      <p class="muted">Marque as etapas realizadas no sistema e registre qualquer pendência.</p>
+      <div class="task"><input type="checkbox" id="totvsCheck"><label for="totvsCheck">Conferência / rotina TOTVS<small>Marque após concluir a verificação no sistema.</small></label></div>
+      <div class="field"><label for="totvsNote">Pendência ou observação TOTVS</label><textarea id="totvsNote" placeholder="Descreva o que ficou pendente (se houver)..."></textarea></div>
+      <button id="saveTotvs">Salvar controle TOTVS</button>
+      <p class="muted" id="totvsStatus"></p>
+    </div>
+    <div class="card"><h2>Histórico de movimentações</h2><div id="stockHistory"></div></div>
   </section>
 
   <section id="historico" class="panel" hidden>
@@ -142,16 +170,47 @@ $("saveLoad").onclick=()=>{
  const a=loads();a.push({date:$("loadDate").value||today(),name,cpar:$("cpar").value,coletor:$("coletor").value,notes:$("notes").value.trim()});set("bame_loads",a);
  $("loadName").value="";$("notes").value="";$("cpar").value="Pendente";$("coletor").value="Pendente";renderLoads();renderSummary();alert("Carga registrada!");
 };
+
+function stockMoves(){return get("bame_stock_moves",[])}
+function renderStock(){
+ const arr=stockMoves(),todayMoves=arr.filter(x=>x.date===day);
+ $("stockIn").textContent= todayMoves.filter(x=>x.type==="Entrada"||x.type==="Divergência positiva").reduce((n,x)=>n+x.qty,0);
+ $("stockOut").textContent= todayMoves.filter(x=>x.type==="Saída"||x.type==="Divergência negativa").reduce((n,x)=>n+x.qty,0);
+ const root=$("stockHistory");root.innerHTML="";
+ if(!arr.length){root.innerHTML='<div class="empty">Nenhuma movimentação registrada.</div>'}
+ [...arr].reverse().forEach(x=>{
+  const div=document.createElement("div");div.className="entry";
+  const head=document.createElement("div");head.className="entryhead";
+  const name=document.createElement("span");name.textContent=x.item+" • "+x.date;
+  const tag=document.createElement("span");tag.className=(x.type.includes("negativa")||x.type==="Saída")?"tagminus":"tagplus";tag.textContent=(x.type.includes("negativa")||x.type==="Saída"?"−":"+")+x.qty;
+  head.append(name,tag);div.append(head);
+  const p=document.createElement("p");p.className="muted";p.textContent=x.type+(x.reason?" | "+x.reason:"");div.append(p);root.append(div);
+ });
+ const t=get("bame_totvs_"+day,{done:false,note:""});
+ $("totvsCheck").checked=!!t.done;$("totvsNote").value=t.note||"";
+ $("totvsStatus").textContent=t.done?"TOTVS concluído neste dia.":"TOTVS ainda não marcado como concluído.";
+}
+$("saveStock").onclick=()=>{
+ const item=$("stockItem").value.trim(),qty=Number($("stockQty").value);
+ if(!item||!Number.isInteger(qty)||qty<=0){alert("Informe o produto e uma quantidade inteira maior que zero.");return}
+ const a=stockMoves();a.push({date:day,item,type:$("stockType").value,qty,reason:$("stockReason").value.trim(),createdAt:new Date().toISOString()});set("bame_stock_moves",a);
+ $("stockItem").value="";$("stockQty").value="";$("stockReason").value="";renderStock();renderSummary();alert("Movimentação registrada!");
+};
+$("saveTotvs").onclick=()=>{
+ set("bame_totvs_"+day,{done:$("totvsCheck").checked,note:$("totvsNote").value.trim()});
+ renderStock();renderSummary();alert("Controle TOTVS salvo!");
+};
+
 function renderSummary(){
  const s=dayState(),done=taskList.filter((_,i)=>s.checks[i]).length+(s.final?1:0),a=loads().filter(x=>x.date===day),pending=a.filter(x=>x.cpar!=="Concluído"||x.coletor!=="Concluído").length;
  $("summary").innerHTML="";
- const lines=[["Data selecionada",day],["Tarefas concluídas",done+" de 7"],["Cargas registradas",String(a.length)],["Cargas com CPAR ou coletor pendente",String(pending)]];
+ const moves=stockMoves().filter(x=>x.date===day),totvs=get("bame_totvs_"+day,{done:false,note:""});\n const plus=moves.filter(x=>x.type==="Entrada"||x.type==="Divergência positiva").reduce((n,x)=>n+x.qty,0),minus=moves.filter(x=>x.type==="Saída"||x.type==="Divergência negativa").reduce((n,x)=>n+x.qty,0);\n const lines=[["Data selecionada",day],["Tarefas concluídas",done+" de 7"],["Cargas registradas",String(a.length)],["Cargas com CPAR ou coletor pendente",String(pending)],["Movimentações de estoque",String(moves.length)],["Divergências / entradas (+)",String(plus)],["Saídas / divergências (-)",String(minus)],["Controle TOTVS",totvs.done?"Concluído":"Pendente"]];
  lines.forEach(([k,v])=>{const p=document.createElement("p");p.textContent=k+": "+v;$("summary").append(p)});
 }
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===b));
  document.querySelectorAll(".panel").forEach(x=>x.hidden=x.id!==b.dataset.tab);
- if(b.dataset.tab==="cargas")renderLoads();if(b.dataset.tab==="historico")renderSummary();
+ if(b.dataset.tab==="cargas")renderLoads();if(b.dataset.tab==="estoque")renderStock();if(b.dataset.tab==="historico")renderSummary();
 });
 $("exportData").onclick=()=>{
  const data={dias:Object.keys(localStorage).filter(k=>k.startsWith("bame_day_")).reduce((o,k)=>(o[k]=get(k,{}),o),{}),cargas:loads()};
