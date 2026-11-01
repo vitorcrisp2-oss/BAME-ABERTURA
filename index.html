@@ -47,6 +47,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
     <button class="active" data-tab="rotina">Checklist</button>
     <button data-tab="cargas">Recebimento</button>
     <button data-tab="estoque">Estoque</button>
+    <button data-tab="recusas">Recusas</button>
     <button data-tab="historico">Resumo</button>
   </nav>
 
@@ -104,6 +105,28 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
       <p class="muted" id="totvsStatus"></p>
     </div>
     <div class="card"><h2>Histórico de movimentações</h2><div id="stockHistory"></div></div>
+  </section>
+
+  <section id="recusas" class="panel" hidden>
+    <div class="card">
+      <h2>Registrar recusa • Omni Channel</h2>
+      <p class="muted">Registre os produtos de pedidos para retirada na loja que precisaram ser enviados ao CD.</p>
+      <div class="field"><label for="refusalDate">Data do envio</label><input id="refusalDate" type="date"></div>
+      <div class="field"><label for="refusalProduct">Nome do produto</label><input id="refusalProduct" type="text" placeholder="Ex.: Ração, tapete higiênico..."></div>
+      <div class="field"><label for="refusalQty">Quantidade enviada ao CD</label><input id="refusalQty" type="number" min="1" step="1" placeholder="Ex.: 2"></div>
+      <div class="field"><label for="refusalCode">Código do produto</label><input id="refusalCode" type="text" placeholder="Código / SKU"></div>
+      <div class="field"><label for="refusalReason">Motivo do envio</label><select id="refusalReason"><option value="Erro de estoque">Erro de estoque</option><option value="Produto não localizado">Produto não localizado</option><option value="Divergência de estoque">Divergência de estoque</option><option value="Produto avariado">Produto avariado</option><option value="Outro">Outro</option></select></div>
+      <div class="field" id="otherReasonField" hidden><label for="refusalOtherReason">Descreva o motivo</label><input id="refusalOtherReason" type="text" placeholder="Informe o motivo"></div>
+      <button id="saveRefusal">Registrar recusa</button>
+    </div>
+    <div class="card">
+      <h2>Indicadores de recusas</h2>
+      <div class="stockgrid">
+        <div class="metric"><strong id="refusalCount">0</strong><span>Registros realizados</span></div>
+        <div class="metric"><strong id="refusalUnits">0</strong><span>Produtos enviados ao CD</span></div>
+      </div>
+    </div>
+    <div class="card"><h2>Histórico de recusas</h2><div id="refusalHistory"></div></div>
   </section>
 
   <section id="historico" class="panel" hidden>
@@ -247,6 +270,44 @@ $("saveTotvs").onclick=()=>{
  renderStock();renderSummary();alert("Controle TOTVS salvo!");
 };
 
+function refusals(){return get("bame_refusals",[])}
+function renderRefusals(){
+ const arr=refusals();
+ $("refusalCount").textContent=arr.length;
+ $("refusalUnits").textContent=arr.reduce((n,x)=>n+Number(x.qty||0),0);
+ const root=$("refusalHistory");root.innerHTML="";
+ if(!arr.length){root.innerHTML='<div class="empty">Nenhuma recusa registrada ainda.</div>';return}
+ [...arr].reverse().forEach((r,rev)=>{
+  const idx=arr.length-1-rev,div=document.createElement("div");div.className="entry";
+  const head=document.createElement("div");head.className="entryhead";
+  const name=document.createElement("span");name.textContent=r.product+" • "+r.date;
+  const qty=document.createElement("span");qty.className="pill";qty.textContent=r.qty+" un. ao CD";
+  head.append(name,qty);div.append(head);
+  const p=document.createElement("p");p.className="muted";
+  p.textContent="Código: "+(r.code||"Não informado")+" | Motivo: "+r.reason;div.append(p);
+  const actions=document.createElement("div");actions.className="actions";
+  const del=document.createElement("button");del.className="danger";del.textContent="Excluir";
+  del.onclick=()=>{if(confirm("Excluir este registro de recusa?")){const a=refusals();a.splice(idx,1);set("bame_refusals",a);renderRefusals();renderSummary()}};
+  actions.append(del);div.append(actions);root.append(div);
+ });
+}
+$("refusalReason").addEventListener("change",()=>{
+ $("otherReasonField").hidden=$("refusalReason").value!=="Outro";
+});
+$("saveRefusal").onclick=()=>{
+ const product=$("refusalProduct").value.trim(),qty=Number($("refusalQty").value);
+ const reason=$("refusalReason").value==="Outro"?$("refusalOtherReason").value.trim():$("refusalReason").value;
+ if(!product||!Number.isInteger(qty)||qty<=0||!reason){
+  alert("Informe o produto, uma quantidade inteira maior que zero e o motivo.");return;
+ }
+ const a=refusals();
+ a.push({date:$("refusalDate").value||today(),product,qty,code:$("refusalCode").value.trim(),reason,createdAt:new Date().toISOString()});
+ set("bame_refusals",a);
+ $("refusalProduct").value="";$("refusalQty").value="";$("refusalCode").value="";
+ $("refusalReason").value="Erro de estoque";$("refusalOtherReason").value="";$("otherReasonField").hidden=true;
+ renderRefusals();renderSummary();alert("Recusa registrada com sucesso!");
+};
+
 function renderSummary(){
  const s=dayState();
  const done=taskList.filter((_,i)=>!!s.checks[i]).length+(s.final?1:0);
@@ -255,6 +316,8 @@ function renderSummary(){
  const finished=a.length-pending;
  const moves=stockMoves().filter(x=>x.date===day);
  const totvs=get("bame_totvs_"+day,{done:false,note:""});
+ const dayRefusals=refusals().filter(x=>x.date===day);
+ const refusalUnits=dayRefusals.reduce((n,x)=>n+Number(x.qty||0),0);
 
  const plus=moves
   .filter(x=>x.type==="Entrada"||x.type==="Divergência positiva")
@@ -274,6 +337,8 @@ function renderSummary(){
   ["Divergências registradas",String(divergences)],
   ["Entradas / divergências positivas (+)",String(plus)],
   ["Saídas / divergências negativas (-)",String(minus)],
+  ["Recusas registradas",String(dayRefusals.length)],
+  ["Produtos enviados ao CD por recusa",String(refusalUnits)],
   ["Controle TOTVS",totvs.done?"Concluído":"Pendente"]
  ];
 
@@ -294,10 +359,10 @@ function renderSummary(){
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===b));
  document.querySelectorAll(".panel").forEach(x=>x.hidden=x.id!==b.dataset.tab);
- if(b.dataset.tab==="cargas")renderLoads();if(b.dataset.tab==="estoque")renderStock();if(b.dataset.tab==="historico")renderSummary();
+ if(b.dataset.tab==="cargas")renderLoads();if(b.dataset.tab==="estoque")renderStock();if(b.dataset.tab==="recusas")renderRefusals();if(b.dataset.tab==="historico")renderSummary();
 });
 $("exportData").onclick=()=>{
- const data={dias:Object.keys(localStorage).filter(k=>k.startsWith("bame_day_")).reduce((o,k)=>(o[k]=get(k,{}),o),{}),cargas:loads()};
+ const data={dias:Object.keys(localStorage).filter(k=>k.startsWith("bame_day_")).reduce((o,k)=>(o[k]=get(k,{}),o),{}),cargas:loads(),movimentacoesEstoque:stockMoves(),recusas:refusals(),controlesTotvs:Object.keys(localStorage).filter(k=>k.startsWith("bame_totvs_")).reduce((o,k)=>(o[k]=get(k,{}),o),{})};
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="bame-registros.json";a.click();URL.revokeObjectURL(url);
 };
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
