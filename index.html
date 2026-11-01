@@ -52,6 +52,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
 
   <section id="rotina" class="panel">
     <div class="datebar"><strong>Checklist do dia</strong><input id="workDate" type="date"></div>
+    <div class="card reminderrow"><div><strong>Lembretes da rotina</strong><div class="muted" id="reminderStatus">Avisos às 9h, 13h e 16h.</div></div><button id="enableReminders" class="secondary">Ativar avisos</button></div>
     <div class="progress">
       <div style="display:flex;justify-content:space-between;gap:8px"><strong>Progresso da abertura</strong><strong id="pct">0%</strong></div>
       <div class="progressline"><div class="bar" id="bar"></div></div>
@@ -171,6 +172,51 @@ $("saveLoad").onclick=()=>{
  $("loadName").value="";$("notes").value="";$("cpar").value="Pendente";$("coletor").value="Pendente";renderLoads();renderSummary();alert("Carga registrada!");
 };
 
+
+let reminderTimer=null;
+function hasPendingWork(){
+ const s=dayState(),taskDone=taskList.every((_,i)=>!!s.checks[i]),loadPending=loads().some(x=>x.date===day&&(x.cpar!=="Concluído"||x.coletor!=="Concluído")),totvs=get("bame_totvs_"+day,{done:false});
+ return !taskDone||!s.final||loadPending||!totvs.done;
+}
+async function notifyReminder(title,body){
+ if(!("Notification" in window)||Notification.permission!=="granted")return;
+ try{
+  const reg=await navigator.serviceWorker.ready;
+  if(reg&&reg.showNotification)await reg.showNotification(title,{body,icon:"./icon.svg",badge:"./icon.svg",tag:"bame-"+day+"-"+title});
+  else new Notification(title,{body});
+ }catch(e){try{new Notification(title,{body})}catch(_){}}
+}
+function checkReminders(){
+ if(!("Notification" in window)||Notification.permission!=="granted")return;
+ const now=new Date(),mins=now.getHours()*60+now.getMinutes(),slots=[540,780,960];
+ if(!hasPendingWork())return;
+ for(const slot of slots){
+  if(mins>=slot&&mins<slot+60){
+   const label=slot===540?"09:00":slot===780?"13:00":"16:00",key="bame_reminder_"+day+"_"+label;
+   if(!get(key,false)){set(key,true);notifyReminder("BAME • Pendências da rotina","Ainda há tarefas pendentes. Confira o checklist, recebimentos e TOTVS.");}
+  }
+ }
+}
+$("enableReminders").onclick=async()=>{
+ if(!("Notification" in window)){alert("Este navegador não oferece suporte a notificações.");return}
+ const permission=await Notification.requestPermission();
+ if(permission==="granted"){
+  $("reminderStatus").textContent="Avisos ativados: 9h, 13h e 16h (com o app aberto).";
+  checkReminders();
+  alert("Lembretes ativados! Mantenha o aplicativo aberto para receber os avisos.");
+ }else{
+  $("reminderStatus").textContent="Permissão de notificação não concedida.";
+  alert("Ative as notificações do site nas configurações do navegador.");
+ }
+};
+function startReminders(){
+ if(!("Notification" in window)){$("reminderStatus").textContent="Notificações não suportadas neste navegador.";return}
+ if(Notification.permission==="granted")$("reminderStatus").textContent="Avisos ativados: 9h, 13h e 16h (com o app aberto).";
+ if(reminderTimer)clearInterval(reminderTimer);
+ reminderTimer=setInterval(checkReminders,30000);
+ checkReminders();
+}
+
 function stockMoves(){return get("bame_stock_moves",[])}
 function renderStock(){
  const arr=stockMoves(),todayMoves=arr.filter(x=>x.date===day);
@@ -217,6 +263,6 @@ $("exportData").onclick=()=>{
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="bame-registros.json";a.click();URL.revokeObjectURL(url);
 };
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-renderTasks();renderSummary();
+renderTasks();renderSummary();startReminders();
 </script>
 </body></html>
