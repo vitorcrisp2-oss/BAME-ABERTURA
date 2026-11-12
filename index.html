@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#10283f">
 <meta name="description" content="SIGLO: sistema integrado para organizar abertura, recebimento, estoque e operações da loja.">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="manifest.webmanifest">\n<link rel="icon" type="image/svg+xml" href="./icon.svg">\n<link rel="apple-touch-icon" href="./icon.svg">
 <title>SIGLO | Gestão Operacional</title>
 <style>
 :root{--navy:#10283f;--navy2:#173d5b;--blue:#23618a;--teal:#22b8a7;--bg:#f3f6fa;--surface:#fff;--ink:#152536;--muted:#708093;--line:#e1e8ef;--green:#16834a;--amber:#a85b00;--red:#b3261e;--shadow:0 8px 24px rgba(16,40,63,.07)}
@@ -13,7 +13,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 header{background:radial-gradient(circle at 90% 0%,rgba(34,184,167,.23),transparent 34%),linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:23px 18px 25px;border-radius:0 0 26px 26px;box-shadow:0 10px 28px rgba(16,40,63,.14)}
 .brandline{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:12px}
-.brandmark{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#fff,#dcebf2);color:var(--navy);display:grid;place-items:center;font-size:27px;font-weight:900;letter-spacing:-2px;box-shadow:0 5px 16px rgba(0,0,0,.15)}
+.brandmark{width:46px;height:46px;flex:0 0 46px;border-radius:14px;overflow:hidden;background:transparent;box-shadow:none}.brandmark img{display:block;width:100%;height:100%;object-fit:cover}
 .brandcopy{min-width:0;flex:1}
 header .eyebrow{font-size:10px;letter-spacing:1.65px;opacity:.72;font-weight:800}
 h1{font-size:25px;letter-spacing:.2px;margin:0;line-height:1.15}
@@ -52,7 +52,7 @@ nav button{flex:1 0 auto;padding:10px 11px;background:#e7eef4;color:#466176;box-
 </style>
 </head>
 <body>
-<header><div class="brandline"><div class="brandmark">S</div><div class="brandcopy"><div class="eyebrow">SISTEMA INTEGRADO DE GESTÃO</div><h1>SIGLO</h1></div><span class="brandtag">OPERAÇÕES</span></div><p>Organização, controle e execução. Tudo em um só lugar.</p></header>
+<header><div class="brandline"><div class="brandmark"><img src="./icon.svg" alt="SIGLO"></div><div class="brandcopy"><div class="eyebrow">SISTEMA INTEGRADO DE GESTÃO</div><h1>SIGLO</h1></div><span class="brandtag">OPERAÇÕES</span></div><p>Organização, controle e execução. Tudo em um só lugar.</p></header>
 <main>
   <nav>
     <button class="active" data-tab="rotina">Checklist</button>
