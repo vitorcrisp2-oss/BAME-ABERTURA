@@ -47,7 +47,7 @@ nav button{flex:1 0 auto;padding:10px 11px;background:#e7eef4;color:#466176;box-
 .stockgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:linear-gradient(145deg,#f3f7fa,#edf3f7);border:1px solid #e5edf3;border-radius:14px;padding:12px}.metric strong{display:block;font-size:21px;letter-spacing:-.5px;color:var(--navy)}.metric span{font-size:11px;color:var(--muted)}
 .notice{padding:11px;border-radius:12px;background:#eef5fb;color:#234b6b;font-size:12px;margin:10px 0}.reminderrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.tagplus{color:var(--green);font-weight:850}.tagminus{color:var(--red);font-weight:850}
 .panel[hidden]{display:none}.muted{color:var(--muted);font-size:12px}.empty{color:var(--muted);text-align:center;padding:18px 5px;font-size:13px}
-footer{text-align:center;color:#8795a4;font-size:10px;letter-spacing:.7px;font-weight:750;padding:20px 8px}
+.sector-task{background:#fff;border:1px solid var(--line);border-radius:15px;padding:13px;margin:8px 0;box-shadow:0 3px 10px rgba(16,40,63,.025)}.sector-task.done{background:#f8fcf9;border-color:#dcefe3}.sector-task-top{display:flex;align-items:center;gap:10px}.sector-task-top input{width:21px;height:21px;accent-color:var(--green)}.sector-task-top strong{font-size:14px}.sector-task textarea{margin-top:9px;min-height:54px;font-size:12px}.history-day{border-top:1px solid var(--line);padding:11px 0}.history-day:first-child{border-top:0}.history-day strong{font-size:13px}.history-items{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6}\nfooter{text-align:center;color:#8795a4;font-size:10px;letter-spacing:.7px;font-weight:750;padding:20px 8px}
 @media(max-width:420px){header{padding:20px 16px 22px}.brandtag{font-size:8px;padding:5px 7px}.brandmark{width:42px;height:42px}h1{font-size:23px}.datebar{align-items:flex-start;flex-direction:column}.datebar input{width:100%}.reminderrow{align-items:flex-start;flex-direction:column}.reminderrow button{width:100%}main{padding-left:12px;padding-right:12px}}
 </style>
 </head>
@@ -59,6 +59,7 @@ footer{text-align:center;color:#8795a4;font-size:10px;letter-spacing:.7px;font-w
     <button data-tab="cargas">Recebimento</button>
     <button data-tab="estoque">Estoque</button>
     <button data-tab="recusas">Recusas</button>
+    <button data-tab="setor">Meu setor</button>
     <button data-tab="historico">Resumo</button>
   </nav>
 
@@ -138,6 +139,28 @@ footer{text-align:center;color:#8795a4;font-size:10px;letter-spacing:.7px;font-w
       </div>
     </div>
     <div class="card"><h2>Histórico de recusas</h2><div id="refusalHistory"></div></div>
+  </section>
+
+  <section id="setor" class="panel" hidden>
+    <div class="card">
+      <h2>Meu setor • Controle individual</h2>
+      <p class="muted">Escolha o nome do seu setor. Seus registros ficam somente neste aparelho e não são compartilhados com os colegas.</p>
+      <div class="field"><label for="sectorName">Nome do meu setor</label><input id="sectorName" type="text" maxlength="60" placeholder="Ex.: Mercearia, Cães, Gatos..."></div>
+      <button id="saveSectorName">Salvar meu setor</button>
+      <p class="muted" id="sectorSaved"></p>
+    </div>
+    <div class="progress">
+      <div style="display:flex;justify-content:space-between;gap:8px"><strong>Execução do setor</strong><strong id="sectorPct">0%</strong></div>
+      <div class="progressline"><div class="bar" id="sectorBar"></div></div>
+      <div class="stats"><span id="sectorCount">0 de 6 concluídos</span><span id="sectorRemaining">6 pendentes</span></div>
+    </div>
+    <div class="notice">Marque cada atividade conforme concluir. O checklist acompanha a data selecionada no topo da aba Checklist; ao virar o dia, uma nova rotina começa automaticamente e o histórico anterior permanece salvo.</div>
+    <div id="sectorTasks"></div>
+    <div class="card">
+      <h2>Histórico do meu setor</h2>
+      <p class="muted">Consulte o que foi realizado em dias anteriores.</p>
+      <div id="sectorHistory"></div>
+    </div>
   </section>
 
   <section id="historico" class="panel" hidden>
@@ -319,6 +342,59 @@ $("saveRefusal").onclick=()=>{
  renderRefusals();renderSummary();alert("Recusa registrada com sucesso!");
 };
 
+const sectorTasks=["Abastecimento","FEFO","Alinhamento","Limpeza","Planograma","Precificação"];
+function sectorProfile(){return get("siglo_sector_profile",{name:""});}
+function sectorHistory(){return get("siglo_sector_history",{});}
+function saveSectorProfile(){
+ const name=$("sectorName").value.trim();
+ if(!name){alert("Digite o nome do seu setor.");$("sectorName").focus();return}
+ set("siglo_sector_profile",{name});
+ $("sectorSaved").textContent="Setor salvo neste aparelho: "+name;
+ renderSector();
+}
+function sectorDay(){const all=sectorHistory();return all[day]||{};}
+function renderSector(){
+ const profile=sectorProfile();
+ if(document.activeElement!==$("sectorName"))$("sectorName").value=profile.name||"";
+ const name=profile.name||"Meu setor";
+ const data=sectorDay();
+ const root=$("sectorTasks");root.innerHTML="";
+ sectorTasks.forEach((label,i)=>{
+  const item=data[i]||{done:false,note:""};
+  const card=document.createElement("div");card.className="sector-task"+(item.done?" done":"");
+  const top=document.createElement("div");top.className="sector-task-top";
+  const cb=document.createElement("input");cb.type="checkbox";cb.checked=!!item.done;cb.id="sectorTask"+i;
+  const title=document.createElement("strong");title.textContent=label;
+  const textLabel=document.createElement("label");textLabel.htmlFor=cb.id;textLabel.style.flex="1";textLabel.append(title);
+  top.append(cb,textLabel);card.append(top);
+  const note=document.createElement("textarea");note.rows=2;note.placeholder="Observação (opcional)...";note.value=item.note||"";
+  note.setAttribute("aria-label","Observação: "+label);
+  cb.addEventListener("change",()=>{const all=sectorHistory(),d=all[day]||{};d[i]={...(d[i]||{}),done:cb.checked,note:note.value,updatedAt:new Date().toISOString()};all[day]=d;set("siglo_sector_history",all);renderSector()});
+  note.addEventListener("change",()=>{const all=sectorHistory(),d=all[day]||{};d[i]={...(d[i]||{}),done:cb.checked,note:note.value,updatedAt:new Date().toISOString()};all[day]=d;set("siglo_sector_history",all);renderSectorHistory()});
+  card.append(note);root.append(card);
+ });
+ const completed=sectorTasks.filter((_,i)=>!!(data[i]&&data[i].done)).length,pct=Math.round(completed/sectorTasks.length*100);
+ $("sectorPct").textContent=pct+"%";$("sectorBar").style.width=pct+"%";
+ $("sectorCount").textContent=completed+" de 6 concluídos";$("sectorRemaining").textContent=(6-completed)+" pendentes";
+ $("sectorSaved").textContent=profile.name?"Controle individual ativo: "+name:"Escolha o nome do seu setor para começar.";
+ renderSectorHistory();
+}
+function renderSectorHistory(){
+ const root=$("sectorHistory"),all=sectorHistory(),dates=Object.keys(all).sort().reverse();root.innerHTML="";
+ if(!dates.length){root.innerHTML='<div class="empty">Seu histórico aparecerá aqui após os primeiros registros.</div>';return}
+ dates.forEach(date=>{
+  const entries=all[date]||{},done=sectorTasks.filter((_,i)=>entries[i]&&entries[i].done).length;
+  const box=document.createElement("div");box.className="history-day";
+  const heading=document.createElement("strong");heading.textContent=date+" • "+done+"/6 concluídos";box.append(heading);
+  const lines=document.createElement("div");lines.className="history-items";
+  sectorTasks.forEach((label,i)=>{
+   const item=entries[i];if(!item)return;
+   const line=document.createElement("div");line.textContent=(item.done?"✓ ":"○ ")+label+(item.note?" — "+item.note:"");lines.append(line);
+  });
+  box.append(lines);root.append(box);
+ });
+}
+$("saveSectorName").addEventListener("click",saveSectorProfile);
 function renderSummary(){
  const s=dayState();
  const done=taskList.filter((_,i)=>!!s.checks[i]).length+(s.final?1:0);
@@ -370,13 +446,13 @@ function renderSummary(){
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
  document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===b));
  document.querySelectorAll(".panel").forEach(x=>x.hidden=x.id!==b.dataset.tab);
- if(b.dataset.tab==="cargas")renderLoads();if(b.dataset.tab==="estoque")renderStock();if(b.dataset.tab==="recusas")renderRefusals();if(b.dataset.tab==="historico")renderSummary();
+ if(b.dataset.tab==="cargas")renderLoads();if(b.dataset.tab==="estoque")renderStock();if(b.dataset.tab==="recusas")renderRefusals();if(b.dataset.tab==="setor")renderSector();if(b.dataset.tab==="historico")renderSummary();
 });
 $("exportData").onclick=()=>{
  const data={dias:Object.keys(localStorage).filter(k=>k.startsWith("bame_day_")).reduce((o,k)=>(o[k]=get(k,{}),o),{}),cargas:loads(),movimentacoesEstoque:stockMoves(),recusas:refusals(),controlesTotvs:Object.keys(localStorage).filter(k=>k.startsWith("bame_totvs_")).reduce((o,k)=>(o[k]=get(k,{}),o),{})};
  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="siglo-registros.json";a.click();URL.revokeObjectURL(url);
 };
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-renderTasks();renderSummary();startReminders();
+renderTasks();renderSummary();renderSector();startReminders();
 </script>
 </body></html>
