@@ -1,4 +1,4 @@
-const CACHE="bame-rotina-v5";
+const CACHE="siglo-shell-v1";
 const FILES=["./","./index.html","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install",event=>{
@@ -12,16 +12,14 @@ self.addEventListener("install",event=>{
 self.addEventListener("activate",event=>{
   event.waitUntil(
     caches.keys()
-      .then(keys=>Promise.all(keys.filter(key=>key.startsWith("bame-rotina-")&&key!==CACHE).map(key=>caches.delete(key))))
+      .then(keys=>Promise.all(keys.filter(key=>(key.startsWith("bame-rotina-")||key.startsWith("siglo-shell-"))&&key!==CACHE).map(key=>caches.delete(key))))
       .then(()=>self.clients.claim())
   );
 });
 
 self.addEventListener("fetch",event=>{
   if(event.request.method!=="GET") return;
-
   const isPage=event.request.mode==="navigate" || new URL(event.request.url).pathname.endsWith("/index.html");
-
   if(isPage){
     event.respondWith(
       fetch(event.request,{cache:"no-store"})
@@ -34,8 +32,5 @@ self.addEventListener("fetch",event=>{
     );
     return;
   }
-
-  event.respondWith(
-    caches.match(event.request).then(cached=>cached||fetch(event.request))
-  );
+  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
 });
