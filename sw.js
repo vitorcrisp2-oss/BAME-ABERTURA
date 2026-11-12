@@ -1,4 +1,4 @@
-const CACHE="siglo-shell-v1";
+const CACHE="siglo-shell-v2";
 const FILES=["./","./index.html","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install",event=>{
