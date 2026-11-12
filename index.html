@@ -3,46 +3,56 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#102b46">
-<meta name="description" content="Checklist diário de abertura e controle de recebimento da loja.">
+<meta name="theme-color" content="#10283f">
+<meta name="description" content="SIGLO: sistema integrado para organizar abertura, recebimento, estoque e operações da loja.">
 <link rel="manifest" href="manifest.webmanifest">
-<title>BAME | Rotina de Abertura</title>
+<title>SIGLO | Gestão Operacional</title>
 <style>
-:root{--navy:#102b46;--blue:#1d527d;--bg:#f2f5f8;--ink:#172536;--muted:#68798a;--line:#dce4eb;--green:#16834a;--amber:#a85b00;--red:#b3261e}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{background:linear-gradient(135deg,var(--navy),var(--blue));color:white;padding:24px 18px 22px;border-radius:0 0 22px 22px}
-header .eyebrow{font-size:12px;letter-spacing:1.5px;opacity:.8;font-weight:700}h1{font-size:23px;margin:6px 0 3px}header p{margin:0;opacity:.85;font-size:14px}
-main{max-width:680px;margin:auto;padding:16px 14px 40px}.datebar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 2px 14px}
-.datebar input{border:1px solid var(--line);border-radius:10px;padding:9px;background:white;font:inherit}
-.progress{background:white;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px}
-.progressline{height:9px;background:#e7edf2;border-radius:99px;overflow:hidden;margin:10px 0 5px}.bar{height:100%;width:0;background:var(--green);transition:width .2s}
-.stats{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
-.section{font-size:12px;letter-spacing:1px;font-weight:800;color:var(--muted);margin:20px 4px 8px}
-.task{display:flex;align-items:center;gap:12px;background:white;border:1px solid var(--line);border-radius:14px;padding:14px;margin:8px 0;min-height:60px}
-.task input{width:22px;height:22px;accent-color:var(--green);flex-shrink:0}
-.task label{flex:1;font-weight:600;font-size:15px}.task small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:3px}
-.task.done label{text-decoration:line-through;color:var(--muted)}
-.critical{border:2px solid #e8b45d;background:#fffaf1}.critical strong{color:#8b4a00}
-.callout{padding:13px 14px;background:#fff3dd;border-radius:13px;color:#714000;font-size:13px;line-height:1.45;margin:10px 0 14px}
-.card{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0}
-h2{font-size:18px;margin:0 0 12px}.field{display:grid;gap:5px;margin:9px 0}.field label{font-size:12px;color:var(--muted);font-weight:700}
-input[type=text],input[type=date],input[type=number],textarea,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font:inherit;background:white;color:var(--ink)}
-[hidden]{display:none!important}
-textarea{min-height:65px;resize:vertical}
-button{border:0;border-radius:11px;padding:12px 15px;background:var(--navy);color:white;font:700 14px system-ui;cursor:pointer}
-button.secondary{background:#e9eff4;color:var(--navy)}button.danger{background:#fff0ef;color:var(--red)}
+:root{--navy:#10283f;--navy2:#173d5b;--blue:#23618a;--teal:#22b8a7;--bg:#f3f6fa;--surface:#fff;--ink:#152536;--muted:#708093;--line:#e1e8ef;--green:#16834a;--amber:#a85b00;--red:#b3261e;--shadow:0 8px 24px rgba(16,40,63,.07)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{background:radial-gradient(circle at 90% 0%,rgba(34,184,167,.23),transparent 34%),linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:23px 18px 25px;border-radius:0 0 26px 26px;box-shadow:0 10px 28px rgba(16,40,63,.14)}
+.brandline{max-width:680px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.brandmark{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#fff,#dcebf2);color:var(--navy);display:grid;place-items:center;font-size:27px;font-weight:900;letter-spacing:-2px;box-shadow:0 5px 16px rgba(0,0,0,.15)}
+.brandcopy{min-width:0;flex:1}
+header .eyebrow{font-size:10px;letter-spacing:1.65px;opacity:.72;font-weight:800}
+h1{font-size:25px;letter-spacing:.2px;margin:0;line-height:1.15}
+header p{max-width:680px;margin:13px auto 0;color:#d4e2ec;font-size:13px}
+.brandtag{font-size:9px;letter-spacing:1px;font-weight:800;color:#c8f4ed;border:1px solid rgba(200,244,237,.3);padding:6px 9px;border-radius:99px;white-space:nowrap}
+main{max-width:680px;margin:auto;padding:14px 14px 42px}
+.datebar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 2px 14px}
+.datebar input{border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:white;font:inherit}
+.progress,.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px;margin:10px 0;box-shadow:var(--shadow)}
+.progressline{height:9px;background:#e9eff4;border-radius:99px;overflow:hidden;margin:11px 0 6px}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--green));border-radius:99px;transition:width .2s}
+.stats{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.section{font-size:10px;letter-spacing:1.35px;font-weight:900;color:#73869a;margin:21px 4px 9px}
+.task{display:flex;align-items:center;gap:12px;background:white;border:1px solid var(--line);border-radius:15px;padding:13px 14px;margin:8px 0;min-height:60px;box-shadow:0 3px 10px rgba(16,40,63,.025)}
+.task input{width:21px;height:21px;accent-color:var(--green);flex-shrink:0}
+.task label{flex:1;font-weight:650;font-size:14px}.task small{display:block;color:var(--muted);font-weight:400;font-size:11px;margin-top:3px}
+.task.done{background:#f8fcf9;border-color:#dcefe3}.task.done label{text-decoration:line-through;color:var(--muted)}
+.critical{border:1.5px solid #edc77f;background:#fffaf1}.critical strong{color:#8b4a00}
+.callout{padding:13px 14px;background:#fff5e5;border:1px solid #f5dfb7;border-radius:14px;color:#714000;font-size:12px;line-height:1.5;margin:10px 0 14px}
+h2{font-size:16px;letter-spacing:-.2px;margin:0 0 10px}
+.field{display:grid;gap:5px;margin:10px 0}.field label{font-size:11px;color:var(--muted);font-weight:800}
+input[type=text],input[type=date],input[type=number],textarea,select{width:100%;border:1px solid #dce5ed;border-radius:11px;padding:11px 12px;font:inherit;font-size:14px;background:#fbfcfe;color:var(--ink);outline:none;transition:border .15s,box-shadow .15s}
+input:focus,textarea:focus,select:focus{border-color:#4a91b8;box-shadow:0 0 0 3px rgba(35,97,138,.1)}
+[hidden]{display:none!important}textarea{min-height:68px;resize:vertical}
+button{border:0;border-radius:12px;padding:11px 15px;background:linear-gradient(135deg,var(--navy),var(--blue));color:white;font:750 13px system-ui;cursor:pointer;box-shadow:0 4px 10px rgba(16,40,63,.12);transition:transform .12s,filter .12s}
+button:active{transform:scale(.98)}button.secondary{background:#eaf1f6;color:var(--navy);box-shadow:none}button.danger{background:#fff0ef;color:var(--red);box-shadow:none}
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .entry{border-top:1px solid var(--line);padding:12px 0}.entry:first-of-type{border-top:0}
-.entryhead{display:flex;justify-content:space-between;gap:8px;font-weight:700}.pill{font-size:11px;border-radius:99px;padding:4px 8px;background:#fff0dc;color:#8b4a00}.pill.ok{background:#e5f5eb;color:#146c3b}
-nav{display:flex;gap:8px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:2}
-nav button{flex:1;padding:10px 5px;background:#e2eaf1;color:var(--navy)}nav button.active{background:var(--navy);color:white}
-.stockgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#f2f6fa;border-radius:12px;padding:12px}.metric strong{display:block;font-size:21px}.metric span{font-size:12px;color:var(--muted)}.notice{padding:11px;border-radius:12px;background:#eef5fb;color:#234b6b;font-size:13px;margin:10px 0}.reminderrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.tagplus{color:var(--green);font-weight:800}.tagminus{color:var(--red);font-weight:800}
-.panel[hidden]{display:none}.muted{color:var(--muted);font-size:13px}.empty{color:var(--muted);text-align:center;padding:18px 5px;font-size:14px}
-footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
+.entryhead{display:flex;justify-content:space-between;gap:8px;font-weight:700;font-size:13px}.pill{font-size:10px;font-weight:800;border-radius:99px;padding:4px 9px;background:#fff0dc;color:#8b4a00;white-space:nowrap}.pill.ok{background:#e5f5eb;color:#146c3b}
+nav{display:flex;gap:6px;position:sticky;top:0;background:rgba(243,246,250,.94);backdrop-filter:blur(12px);padding:9px 0;z-index:2;overflow-x:auto;scrollbar-width:none}nav::-webkit-scrollbar{display:none}
+nav button{flex:1 0 auto;padding:10px 11px;background:#e7eef4;color:#466176;box-shadow:none;font-size:12px}nav button.active{background:var(--navy);color:white;box-shadow:0 4px 12px rgba(16,40,63,.18)}
+.stockgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:linear-gradient(145deg,#f3f7fa,#edf3f7);border:1px solid #e5edf3;border-radius:14px;padding:12px}.metric strong{display:block;font-size:21px;letter-spacing:-.5px;color:var(--navy)}.metric span{font-size:11px;color:var(--muted)}
+.notice{padding:11px;border-radius:12px;background:#eef5fb;color:#234b6b;font-size:12px;margin:10px 0}.reminderrow{display:flex;align-items:center;justify-content:space-between;gap:10px}.tagplus{color:var(--green);font-weight:850}.tagminus{color:var(--red);font-weight:850}
+.panel[hidden]{display:none}.muted{color:var(--muted);font-size:12px}.empty{color:var(--muted);text-align:center;padding:18px 5px;font-size:13px}
+footer{text-align:center;color:#8795a4;font-size:10px;letter-spacing:.7px;font-weight:750;padding:20px 8px}
+@media(max-width:420px){header{padding:20px 16px 22px}.brandtag{font-size:8px;padding:5px 7px}.brandmark{width:42px;height:42px}h1{font-size:23px}.datebar{align-items:flex-start;flex-direction:column}.datebar input{width:100%}.reminderrow{align-items:flex-start;flex-direction:column}.reminderrow button{width:100%}main{padding-left:12px;padding-right:12px}}
 </style>
 </head>
 <body>
-<header><div class="eyebrow">BAME • ORGANIZAÇÃO DIÁRIA</div><h1>Rotina de Abertura</h1><p>Um passo de cada vez. Nada importante fica para trás.</p></header>
+<header><div class="brandline"><div class="brandmark">S</div><div class="brandcopy"><div class="eyebrow">SISTEMA INTEGRADO DE GESTÃO</div><h1>SIGLO</h1></div><span class="brandtag">OPERAÇÕES</span></div><p>Organização, controle e execução. Tudo em um só lugar.</p></header>
 <main>
   <nav>
     <button class="active" data-tab="rotina">Checklist</button>
@@ -138,7 +148,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:18px}
       <button class="secondary" id="exportData">Exportar meus registros</button>
     </div>
   </section>
-  <footer>BAME | ROTINA DE ABERTURA • Ferramenta pessoal de organização</footer>
+  <footer>SIGLO • SISTEMA INTEGRADO DE GESTÃO DA LOJA E OPERAÇÕES</footer>
 </main>
 <script>
 const taskList=[
@@ -217,7 +227,7 @@ function checkReminders(){
  for(const slot of slots){
   if(mins>=slot&&mins<slot+60){
    const label=slot===540?"09:00":slot===780?"13:00":"16:00",key="bame_reminder_"+day+"_"+label;
-   if(!get(key,false)){set(key,true);notifyReminder("BAME • Pendências da rotina","Ainda há tarefas pendentes. Confira o checklist, recebimentos e TOTVS.");}
+   if(!get(key,false)){set(key,true);notifyReminder("SIGLO • Pendências da rotina","Ainda há tarefas pendentes. Confira o checklist, recebimentos e TOTVS.");}
   }
  }
 }
@@ -364,7 +374,7 @@ document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
 });
 $("exportData").onclick=()=>{
  const data={dias:Object.keys(localStorage).filter(k=>k.startsWith("bame_day_")).reduce((o,k)=>(o[k]=get(k,{}),o),{}),cargas:loads(),movimentacoesEstoque:stockMoves(),recusas:refusals(),controlesTotvs:Object.keys(localStorage).filter(k=>k.startsWith("bame_totvs_")).reduce((o,k)=>(o[k]=get(k,{}),o),{})};
- const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="bame-registros.json";a.click();URL.revokeObjectURL(url);
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="siglo-registros.json";a.click();URL.revokeObjectURL(url);
 };
 if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 renderTasks();renderSummary();startReminders();
